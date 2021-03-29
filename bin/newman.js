@@ -8,7 +8,11 @@ const _ = require('lodash'),
     program = new Command(),
     version = require('../package.json').version,
     newman = require('../'),
-    util = require('./util');
+    util = require('./util'),
+    path = require('path'),
+    cp = require('child_process'),
+    open = require('open');
+    // dashboard = require('../lib/dashboard');
 
 program
     .name('newman')
@@ -61,6 +65,7 @@ program
     .option('--cookie-jar <path>', 'Specify the path to a custom cookie jar (serialized tough-cookie JSON) ')
     .option('--export-cookie-jar <path>', 'Exports the cookie jar to a file after completing the run')
     .option('--verbose', 'Show detailed information of collection run and each request sent')
+    .option('--dashboard', 'Starts an instance of the newman user dashboard.')
     .action((collection, command) => {
         let options = util.commanderToObject(command),
 
@@ -74,15 +79,44 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
-        newman.run(options, function (err, summary) {
-            const runError = err || summary.run.error || summary.run.failures.length;
+        if (options.dashboard) {
+            console.log("> Dashboard is running at port: 5001");
+            console.log("> Opening browser window...");
+            open("http://localhost:5001/");
 
-            if (err) {
-                console.error(`error: ${err.message || err}\n`);
-                err.friendly && console.error(`  ${err.friendly}\n`);
-            }
-            runError && !_.get(options, 'suppressExitCode') && process.exit(1);
-        });
+            const n = cp.fork(path.join(__dirname, '..', 'lib', 'dashboard', 'socket-server.js'));
+            n.on('message', (m) => {
+                console.log('\nSERVER PROCESS REQUESTED: ' + m.msg + '\n');
+            })
+
+            setTimeout(() => {
+                newman.run(options, function (err, summary) {
+                    const runError =
+                        err || summary.run.error || summary.run.failures.length;
+
+                    if (err) {
+                        console.error(`error: ${err.message || err}\n`);
+                        err.friendly && console.error(`  ${err.friendly}\n`);
+                    }
+                    runError &&
+                        !_.get(options, "suppressExitCode") &&
+                        process.exit(1);
+                });
+            }, 4000);
+        } else {
+            newman.run(options, function (err, summary) {
+                const runError =
+                    err || summary.run.error || summary.run.failures.length;
+
+                if (err) {
+                    console.error(`error: ${err.message || err}\n`);
+                    err.friendly && console.error(`  ${err.friendly}\n`);
+                }
+                runError &&
+                    !_.get(options, "suppressExitCode") &&
+                    process.exit(1);
+            });
+        }
     });
 
 program.addHelpText('after', `

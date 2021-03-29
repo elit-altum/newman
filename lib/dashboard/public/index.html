@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Newman Dashboard</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1>Newman Dashboard</h1>
+    <div class="buttons">
+      <button class="pause-button" onclick="clickPauseButton()" id="pauseButton">Pause</button>
+      <button class="abort-button" onclick="clickAbortButton()">Abort</button>
+      <button class="start-button" onclick="clickStartButton()">Start</button>
+      <button class="close-button" onclick="clickCloseButton()">Terminate</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
