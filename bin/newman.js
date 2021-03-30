@@ -14,6 +14,9 @@ const _ = require('lodash'),
     open = require('open');
     // dashboard = require('../lib/dashboard');
 
+    // require('../lib/dashboard/ipc/index');
+    const ipc = require("node-ipc");
+
 program
     .name('newman')
     .addHelpCommand(false)
@@ -82,9 +85,10 @@ program
         if (options.dashboard) {
             console.log("> Dashboard is running at port: 5001");
             console.log("> Opening browser window...");
-            open("http://localhost:5001/");
+            // open("http://localhost:5001/");
 
-            const n = cp.fork(path.join(__dirname, '..', 'lib', 'dashboard', 'socket-server.js'));
+            // dashboard.start();
+            const n = cp.fork(path.join(__dirname, '..', 'lib', 'dashboard', 'index.js'));
             n.on('message', (m) => {
                 console.log('\nSERVER PROCESS REQUESTED: ' + m.msg + '\n');
             })
