@@ -14,8 +14,8 @@ const _ = require('lodash'),
     open = require('open');
     // dashboard = require('../lib/dashboard');
 
-    // require('../lib/dashboard/ipc/index');
-    const ipc = require("node-ipc");
+// require('../lib/dashboard/ipc/index');
+const ipc = require('node-ipc');
 
 program
     .name('newman')
@@ -82,59 +82,27 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
-        if (options.dashboard) {
-            console.log("> Dashboard is running at port: 5001");
-            console.log("> Opening browser window...");
-            // open("http://localhost:5001/");
+        process.on('message', (m) => {
+            console.log(`\nDASHBOARD REQUESTED: ${m.command.toUpperCase()}\n`);
+        });
 
-            // dashboard.start();
-            // const n = cp.fork(path.join(__dirname, '..', 'lib', 'dashboard', 'index.js'));
-            // n.on('message', (m) => {
-            //     console.log('\nSERVER PROCESS REQUESTED: ' + m.msg + '\n');
-            // })
-            
-            console.log(process.execPath);
-            const d = cp.spawn(process.execPath, ["./lib/dashboard/socket-server.js"], {
-                detached: true,
-                stdio: ["ignore", "ignore", "ignore", "ipc"],
-            });
+        newman.run(options, function (err, summary) {
+            const runError =
+                err || summary.run.error || summary.run.failures.length;
 
-            console.log(d.pid);
-
-            d.on('message', (m) => {
-                console.log(m);
-            });
-
-            d.unref();
-            newman.run(options, function (err, summary) {
-                const runError =
-                    err || summary.run.error || summary.run.failures.length;
-
-                if (err) {
-                    console.error(`error: ${err.message || err}\n`);
-                    err.friendly && console.error(`  ${err.friendly}\n`);
-                }
-                runError &&
-                    !_.get(options, "suppressExitCode") &&
-                    process.exit(1);
-                d.disconnect();
-            });
-
-        } else {
-            newman.run(options, function (err, summary) {
-                const runError =
-                    err || summary.run.error || summary.run.failures.length;
-
-                if (err) {
-                    console.error(`error: ${err.message || err}\n`);
-                    err.friendly && console.error(`  ${err.friendly}\n`);
-                }
-                runError &&
-                    !_.get(options, "suppressExitCode") &&
-                    process.exit(1);
-            });
-        }
+            if (err) {
+                console.error(`error: ${err.message || err}\n`);
+                err.friendly && console.error(`  ${err.friendly}\n`);
+            }
+            runError && !_.get(options, 'suppressExitCode') && process.exit(1);
+            process.disconnect();
+        });
     });
+
+program.command('dashboard').action(() => {
+    require('../lib/dashboard/index');
+    console.log('Dashboard is running at port : 5001');
+});
 
 program.addHelpText('after', `
 To get available options for a command:
