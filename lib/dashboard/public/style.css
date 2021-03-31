@@ -21,6 +21,7 @@ body > h1 {
 }
 
 .buttons {
+  width: 400px;
   margin-top: 40px;
 }
 
@@ -55,7 +56,7 @@ body > h1 {
 }
 
 .input-command {
-  width: 300px;
+  width: 400px;
   height: 20px;
   font-family: 'Roboto Mono';
   border: 1px solid #999;
