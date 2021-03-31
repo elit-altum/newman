@@ -11,11 +11,8 @@ const _ = require('lodash'),
     util = require('./util'),
     path = require('path'),
     cp = require('child_process'),
-    open = require('open');
-    // dashboard = require('../lib/dashboard');
-
-// require('../lib/dashboard/ipc/index');
-const ipc = require('node-ipc');
+    open = require('open'),
+    dashboard = require('./subberClient');
 
 program
     .name('newman')
@@ -82,9 +79,11 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
-        process.on('message', (m) => {
-            console.log(`\nDASHBOARD REQUESTED: ${m.command.toUpperCase()}\n`);
-        });
+        dashboard.emitProcessStart(process.argv);
+
+        // dashboard.sendProcessToDashboard();
+        // dashboard.getDashboardCommands();
+        dashboard.listenEvents();
 
         newman.run(options, function (err, summary) {
             const runError =
@@ -95,18 +94,22 @@ program
                 err.friendly && console.error(`  ${err.friendly}\n`);
             }
             runError && !_.get(options, 'suppressExitCode') && process.exit(1);
-
-            // disconnect from parent process if launched as a child process
-            if (typeof process.disconnect !== 'undefined') {
-                process.disconnect();
-            }
+            dashboard.emitProcessEnd();
+            process.exit(0);
         });
     });
 
 program.command('dashboard').action(() => {
-    require('../lib/dashboard/index');
-    console.log('Dashboard is running at port : 5001');
-    open('http://localhost:5001/');
+    const dashServer = cp.spawn(process.execPath, ['./lib/dashboard/socket-server.js'], {
+        detached: true,
+        stdio: ['ignore', 'ignore', 'ignore', 'ignore']
+    });
+
+    dashServer.unref();
+
+    console.log("Dashboard is running at: http://localhost:5001/");
+    process.exit(1);
+
 });
 
 program.addHelpText('after', `

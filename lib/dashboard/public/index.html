@@ -8,17 +8,19 @@
   </head>
   <body>
     <h1>Newman Dashboard</h1>
-    
-    <div class="command">
-      <p>newman</p>
-      <input type="text" id="runCommand" class="input-command" />
+    <div class="exec-runs" id="exec-runs">
+      <!-- <div class="exec-run">
+        <button class="pause-button" onclick="clickPauseButton()" id="pauseButton">Pause</button>
+        <div>
+          <p class="exec-run-command">run examples/sample-collection.json -r</p>
+          <p class="exec-run-date">2021-03-31T17:47:52.939Z</p>
+        </div>
+        <button class="abort-button" onclick="clickAbortButton()">Abort</button>
+      </div> -->
     </div>
-    <p id="error-message"></p>
     <div class="buttons">
-      <button class="start-button" onclick="clickStartButton()">Start</button>
-      <button class="pause-button" onclick="clickPauseButton()" id="pauseButton">Pause</button>
-      <button class="abort-button" onclick="clickAbortButton()">Abort</button>
-      <button class="close-button" onclick="clickCloseButton()">Terminate</button>
+      
+      <button class="close-button" onclick="clickTerminateButton()">Terminate</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
