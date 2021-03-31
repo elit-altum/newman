@@ -8,15 +8,17 @@
   </head>
   <body>
     <h1>Newman Dashboard</h1>
+    
+    <div class="command">
+      <p>newman</p>
+      <input type="text" id="runCommand" class="input-command" />
+    </div>
     <p id="error-message"></p>
     <div class="buttons">
+      <button class="start-button" onclick="clickStartButton()">Start</button>
       <button class="pause-button" onclick="clickPauseButton()" id="pauseButton">Pause</button>
       <button class="abort-button" onclick="clickAbortButton()">Abort</button>
-      <button class="start-button" onclick="clickStartButton()">Start</button>
       <button class="close-button" onclick="clickCloseButton()">Terminate</button>
-    </div>
-    <div>
-      <input type="text" id="runCommand" />
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>

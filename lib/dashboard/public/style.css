@@ -21,8 +21,7 @@ body > h1 {
 }
 
 .buttons {
-  margin-top: 20px;
-  
+  margin-top: 40px;
 }
 
 .buttons > button {
@@ -40,4 +39,35 @@ body > h1 {
 
 .buttons > button:hover {
   box-shadow: 1px 1px 4px #999;
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60px;
+
+}
+
+.command > p {
+  color: #555;
+  font-size: 18px;
+}
+
+.input-command {
+  width: 300px;
+  height: 20px;
+  font-family: 'Roboto Mono';
+  border: 1px solid #999;
+  border-radius: 3px;
+  box-shadow: 1px 1px 3px #d0d0d0;
+  padding: 3px;
+  color: #777;
+  font-size: 15px;
+  margin-left: 5px;
+
+}
+
+.input-command:focus {
+  outline: none;
 }
