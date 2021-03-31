@@ -95,13 +95,18 @@ program
                 err.friendly && console.error(`  ${err.friendly}\n`);
             }
             runError && !_.get(options, 'suppressExitCode') && process.exit(1);
-            process.disconnect();
+
+            // disconnect from parent process if launched as a child process
+            if (typeof process.disconnect !== 'undefined') {
+                process.disconnect();
+            }
         });
     });
 
 program.command('dashboard').action(() => {
     require('../lib/dashboard/index');
     console.log('Dashboard is running at port : 5001');
+    open('http://localhost:5001/');
 });
 
 program.addHelpText('after', `
