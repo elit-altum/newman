@@ -9,9 +9,8 @@ const _ = require('lodash'),
     version = require('../package.json').version,
     newman = require('../'),
     util = require('./util'),
-    path = require('path'),
+    // eslint-disable-next-line security/detect-child-process
     cp = require('child_process'),
-    open = require('open'),
     dashboard = require('./subberClient');
 
 program
@@ -80,9 +79,6 @@ program
         }, {});
 
         dashboard.emitProcessStart(process.argv);
-
-        // dashboard.sendProcessToDashboard();
-        // dashboard.getDashboardCommands();
         dashboard.listenEvents();
 
         newman.run(options, function (err, summary) {
@@ -95,21 +91,25 @@ program
             }
             runError && !_.get(options, 'suppressExitCode') && process.exit(1);
             dashboard.emitProcessEnd();
-            process.exit(0);
         });
     });
 
+// start the dashboard on port 5001 when user uses the dashboard command
 program.command('dashboard').action(() => {
+    // launch the dashboard as a daemon
     const dashServer = cp.spawn(process.execPath, ['./lib/dashboard/socket-server.js'], {
         detached: true,
         stdio: ['ignore', 'ignore', 'ignore', 'ignore']
     });
 
+    // unref the spawned process
     dashServer.unref();
 
-    console.log("Dashboard is running at: http://localhost:5001/");
-    process.exit(1);
+    // eslint-disable-next-line no-console
+    console.log('Dashboard is running at: http://localhost:5001/');
 
+    // exit the process so that socket server doesn't hold the terminal
+    process.exit(1);
 });
 
 program.addHelpText('after', `

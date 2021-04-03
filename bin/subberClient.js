@@ -1,28 +1,31 @@
 /* eslint-disable */
-
+// communicate to the newman dashboard socket server
 let emitProcessEnd = () => {};
 let listenEvents = () => {};
 let emitProcessStart = () => {};
 
 try {
+  // client library to connect to socket server
   const io = require("socket.io-client");
 
-  // current process id
+  // unique process id
   const processId = `run-${Date.now().toString()}`;
 
+  // connect to the socket server as a client
   const socket = io("http://localhost:5001/");
 
+  // to notify server about start of a new process
   emitProcessStart = (argv) => {
     let cmdString = '';
     let runIndex = argv.indexOf('run');
 
+    // get the user command string from the argv
     if(runIndex !== -1) {
       for( i = runIndex; i < argv.length; ++i) {
         cmdString += argv[i] + " ";
       }
     }
 
-    console.log(cmdString);
     socket.emit("newProcess", {
         processId,
         startTime: new Date(),
@@ -30,14 +33,17 @@ try {
     });
   }
 
-  // emit process has ended
+  // to notify server about the end of a process
   emitProcessEnd = () => {
       socket.emit("endProcess", {
           processId,
       });
+      
+      // close the client connection with socket
+      socket.close();
   };
 
-  // listen for pause events
+  // listen for various control events from the server
   listenEvents = () => {
     socket.on('pauseProcess', (data) => {
       if (data.processId === processId) {
