@@ -8,20 +8,22 @@
 
 body {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   font-family: 'Roboto Condensed', sans-serif;
+  overflow-x: hidden;
 }
 
 body > h1 {
   text-transform: uppercase;
-  font-size: 48px;
+  font-size: 40px;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .buttons {
   margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .buttons > button {
@@ -62,7 +64,7 @@ body > h1 {
   justify-content: space-between;
   border: 1px solid transparent;
   border-bottom: 1px solid #999;
-  padding: 10px 0;
+  padding-bottom: 20px;
 }
 
 .exec-run > button {

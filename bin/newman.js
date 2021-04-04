@@ -9,9 +9,32 @@ const _ = require('lodash'),
     version = require('../package.json').version,
     newman = require('../'),
     util = require('./util'),
+    open = require('open'),
     // eslint-disable-next-line security/detect-child-process
     cp = require('child_process'),
     dashboard = require('./subberClient');
+
+// start the dashboard on port 5001 when user uses the dashboard command
+let startDashboard = () => new Promise((resolve) => {
+    // launch the dashboard as a daemon
+    const dashServer = cp.spawn(
+        process.execPath,
+        ["./lib/dashboard/socket-server.js"],
+        {
+            detached: true,
+            stdio: ["ignore", "ignore", "ignore", "ignore",  "ipc"],
+        }
+    );
+
+    dashServer.on('message', (data) => {
+        console.log(data.message);
+        // unref the spawned process
+        dashServer.disconnect();
+        dashServer.unref();
+
+        resolve();
+    });
+});
 
 program
     .name('newman')
@@ -23,6 +46,7 @@ program
     .command('run <collection>')
     .description('Initiate a Postman Collection run from a given URL or path')
     .usage('<collection> [options]')
+    .option('--dashboard', 'Opens the dashboard to control newman runs via GUI.')
     .option('-e, --environment <path>', 'Specify a URL or path to a Postman Environment')
     .option('-g, --globals <path>', 'Specify a URL or path to a file containing Postman Globals')
     .option('-r, --reporters [reporters]', 'Specify the reporters to use for this run', util.cast.csvParse, ['cli'])
@@ -65,9 +89,9 @@ program
     .option('--export-cookie-jar <path>', 'Exports the cookie jar to a file after completing the run')
     .option('--verbose', 'Show detailed information of collection run and each request sent')
     .option('--dashboard', 'Starts an instance of the newman user dashboard.')
-    .action((collection, command) => {
+    .action(async (collection, command) => {
         let options = util.commanderToObject(command),
-
+            usingDashboard = 0,
             // parse custom reporter options
             reporterOptions = util.parseNestedOptions(program._originalArgs, '--reporter-', options.reporters);
 
@@ -78,7 +102,22 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
-        dashboard.emitProcessStart(process.argv);
+        if (options.dashboard) {
+            // start the dashboard
+            await startDashboard();
+            await open("http://localhost:5001/");
+
+            // emit command to pause the newman run which can then be started via the dashboard
+            // eslint-disable-next-line no-console
+            console.log('CONTROL COMMAND: PAUSED RUN');
+            usingDashboard = 1;
+            await dashboard.emitDashboardStartProcess(process.argv);
+
+            // if dashboard not started, continue the normal newman run
+        } else {
+            dashboard.emitProcessStart(process.argv);
+        }
+
         dashboard.listenEvents();
 
         newman.run(options, function (err, summary) {
@@ -91,26 +130,13 @@ program
             }
             runError && !_.get(options, 'suppressExitCode') && process.exit(1);
             dashboard.emitProcessEnd();
+
+            if (usingDashboard) {
+                // to exit from the socket-server process so it doesn't hold the terminal
+                process.exit(1);
+            }
         });
     });
-
-// start the dashboard on port 5001 when user uses the dashboard command
-program.command('dashboard').action(() => {
-    // launch the dashboard as a daemon
-    const dashServer = cp.spawn(process.execPath, ['./lib/dashboard/socket-server.js'], {
-        detached: true,
-        stdio: ['ignore', 'ignore', 'ignore', 'ignore']
-    });
-
-    // unref the spawned process
-    dashServer.unref();
-
-    // eslint-disable-next-line no-console
-    console.log('Dashboard is running at: http://localhost:5001/');
-
-    // exit the process so that socket server doesn't hold the terminal
-    process.exit(1);
-});
 
 program.addHelpText('after', `
 To get available options for a command:
