@@ -105,6 +105,8 @@ program.command('dashboard').action(() => {
     dashServer.on('message', (data) => {
         // eslint-disable-next-line no-console
         console.log(data.message);
+
+        // disconnect the IPC channel and exit from the current newman process
         dashServer.unref();
         dashServer.disconnect();
         process.exit(1);
