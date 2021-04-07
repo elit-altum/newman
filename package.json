@@ -50,6 +50,7 @@
     "eventemitter3": "4.0.7",
     "express": "^4.17.1",
     "filesize": "6.1.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "4.17.21",
     "mkdirp": "1.0.4",
     "open": "^8.0.4",
