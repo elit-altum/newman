@@ -36,7 +36,8 @@
     "postpublish": "./npm/postpublish.sh",
     "publish-wiki": "node npm/publish-wiki.js",
     "start-dashboard": "nodemon ./lib/dashboard/socket-server.js",
-    "dashboard/client:dev": "next ./lib/dashboard/frontend"
+    "dashboard/client:dev": "next ./lib/dashboard/frontend",
+    "dashboard/client:build": "next build ./lib/dashboard/frontend && next export ./lib/dashboard/frontend"
   },
   "author": "Postman Labs <help@postman.com> (=)",
   "license": "Apache-2.0",
