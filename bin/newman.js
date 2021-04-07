@@ -99,17 +99,16 @@ program.command('dashboard').action(() => {
     // launch the dashboard as a daemon
     const dashServer = cp.spawn(process.execPath, ['./lib/dashboard/socket-server.js'], {
         detached: true,
-        stdio: ['ignore', 'ignore', 'ignore', 'ignore']
+        stdio: ['ignore', 'ignore', 'ignore', 'ignore', 'ipc']
     });
 
-    // unref the spawned process
-    dashServer.unref();
-
-    // eslint-disable-next-line no-console
-    console.log('Dashboard is running at: http://localhost:5001/');
-
-    // exit the process so that socket server doesn't hold the terminal
-    process.exit(1);
+    dashServer.on('message', (data) => {
+        // eslint-disable-next-line no-console
+        console.log(data.message);
+        dashServer.unref();
+        dashServer.disconnect();
+        process.exit(1);
+    });
 });
 
 program.addHelpText('after', `
