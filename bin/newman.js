@@ -34,6 +34,7 @@ program
     .option('--global-var <value>',
         'Allows the specification of global variables via the command line, in a key=value format',
         util.cast.memoizeKeyVal, [])
+    .option('--useDashboard', 'Allows the run to be tracked and controlled by the dashboard.')
     .option('--env-var <value>',
         'Allows the specification of environment variables via the command line, in a key=value format',
         util.cast.memoizeKeyVal, [])
@@ -78,8 +79,12 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
-        dashboard.emitProcessStart(process.argv);
-        dashboard.listenEvents();
+        if (options.useDashboard) {
+            // eslint-disable-next-line no-console
+            console.log('PAUSE PROCESS HERE.');
+            dashboard.emitProcessStart(process.argv);
+            dashboard.listenEvents();
+        }
 
         newman.run(options, function (err, summary) {
             const runError =

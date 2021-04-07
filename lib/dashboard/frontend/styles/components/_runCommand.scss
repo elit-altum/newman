@@ -11,6 +11,29 @@
     justify-content: space-around;
     color: #999;
     font-size: 0.9rem;
+
+    .exec-run-buttons {
+      display: flex;
+      button {
+        margin: 0 5px;
+        background-color: #fff;
+        border: transparent;
+        border-radius: 100%;
+        font-family: monospace;
+        font-size: 1.55rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease-in-out;
+        cursor: pointer;
+        color: #777;
+
+        &:hover {
+          background-color: #999;
+          color: #fff;
+        }
+      }
+    }
   }
 
   .exec-run-command {
