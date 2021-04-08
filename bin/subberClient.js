@@ -15,9 +15,9 @@ const socket = io("http://localhost:5001/", {
 });
 
 // client-side
-socket.on("connect_error", (err) => {
-    console.log('Cannot connect to dashboard: ' + err.message);
-});
+// socket.on("connect_error", (err) => {
+//     console.log('Cannot connect to dashboard: ' + err.message);
+// });
 
 // to notify server about start of a new process
 const emitProcessStart = (argv) => {
