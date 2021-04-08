@@ -10,14 +10,9 @@ const processId = `run-${Date.now().toString()}`;
 // connect to the socket server as a client
 const socket = io("http://localhost:5001/", {
   auth: {
-    token: jwt.sign({processId}, "insertSecretKeyHere")
+    token: jwt.sign({type: 'exec-run', processId}, "insertSecretKeyHere")
   }
 });
-
-// client-side
-// socket.on("connect_error", (err) => {
-//     console.log('Cannot connect to dashboard: ' + err.message);
-// });
 
 // to notify server about start of a new process
 const emitProcessStart = (argv) => {
@@ -31,41 +26,35 @@ const emitProcessStart = (argv) => {
     }
   }
 
-  socket.emit("newProcess", {
-      processId,
-      startTime: new Date(),
-      command: cmdString
+  socket.emit("exec-run:start", {
+    processId,
+    startTime: new Date(),
+    command: cmdString
   });
 }
 
 // to notify server about the end of a process
 const emitProcessEnd = () => {
-    socket.emit("endProcess", {
-        processId,
-    });
+  socket.emit("exec-run:end", {
+    processId
+  });
     
-    // close the client connection with socket
-    socket.close();
+  // close the client connection with socket
+  socket.close();
 };
 
 // listen for various control events from the server
 const listenEvents = () => {
-  socket.on('pauseProcess', (data) => {
-    if (data.processId === processId) {
+  socket.on('control-command', (data) => {
+
+    if (data.action === 'pause') {
       console.log("\nPAUSE PROCESS\n");
+    } else if(data.action === 'resume') {
+      console.log("\nRESUME PROCESS\n");
+    } else if(data.action === 'abort') {
+      console.log("\nABORT PROCESS\n");
     }
-  });
-
-  socket.on("resumeProcess", (data) => {
-      if (data.processId === processId) {
-          console.log("\nRESUME PROCESS\n");
-      }
-  });
-
-  socket.on("abortProcess", (data) => {
-      if (data.processId === processId) {
-          console.log("\nABORT PROCESS\n");
-      }
+    
   });
 }
 
