@@ -8,7 +8,10 @@ const _ = require('lodash'),
     program = new Command(),
     version = require('../package.json').version,
     newman = require('../'),
-    util = require('./util');
+    util = require('./util'),
+    // eslint-disable-next-line security/detect-child-process
+    cp = require('child_process'),
+    dashboard = require('./subberClient');
 
 program
     .name('newman')
@@ -31,6 +34,7 @@ program
     .option('--global-var <value>',
         'Allows the specification of global variables via the command line, in a key=value format',
         util.cast.memoizeKeyVal, [])
+    .option('--useDashboard', 'Allows the run to be tracked and controlled by the dashboard.')
     .option('--env-var <value>',
         'Allows the specification of environment variables via the command line, in a key=value format',
         util.cast.memoizeKeyVal, [])
@@ -61,6 +65,7 @@ program
     .option('--cookie-jar <path>', 'Specify the path to a custom cookie jar (serialized tough-cookie JSON) ')
     .option('--export-cookie-jar <path>', 'Exports the cookie jar to a file after completing the run')
     .option('--verbose', 'Show detailed information of collection run and each request sent')
+    .option('--dashboard', 'Starts an instance of the newman user dashboard.')
     .action((collection, command) => {
         let options = util.commanderToObject(command),
 
@@ -74,16 +79,44 @@ program
             acc[key] = _.assignIn(value, reporterOptions._generic); // overrides reporter options with _generic
         }, {});
 
+        if (options.useDashboard) {
+            // eslint-disable-next-line no-console
+            console.log('PAUSE PROCESS HERE.');
+            dashboard.emitProcessStart(process.argv);
+            dashboard.listenEvents();
+        }
+
         newman.run(options, function (err, summary) {
-            const runError = err || summary.run.error || summary.run.failures.length;
+            const runError =
+                err || summary.run.error || summary.run.failures.length;
 
             if (err) {
                 console.error(`error: ${err.message || err}\n`);
                 err.friendly && console.error(`  ${err.friendly}\n`);
             }
             runError && !_.get(options, 'suppressExitCode') && process.exit(1);
+            dashboard.emitProcessEnd();
         });
     });
+
+// start the dashboard on port 5001 when user uses the dashboard command
+program.command('dashboard').action(() => {
+    // launch the dashboard as a daemon
+    const dashServer = cp.spawn(process.execPath, ['./lib/dashboard/socket-server.js'], {
+        detached: true,
+        stdio: ['ignore', 'ignore', 'ignore', 'ignore', 'ipc']
+    });
+
+    dashServer.on('message', (data) => {
+        // eslint-disable-next-line no-console
+        console.log(data.message);
+
+        // disconnect the IPC channel and exit from the current newman process
+        dashServer.unref();
+        dashServer.disconnect();
+        process.exit(1);
+    });
+});
 
 program.addHelpText('after', `
 To get available options for a command:
